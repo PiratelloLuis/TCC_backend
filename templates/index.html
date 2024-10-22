@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Perguntas e Respostas</title>
+    <script>
+        async function cadastrar() {
+            const nomeAluno = document.getElementById('nomeAluno').value;
+            const perguntas = document.getElementById('perguntas').value.split('\n');
+            const respostas = document.getElementById('respostas').value.split('\n');
+
+            // Validando que o número de perguntas e respostas são iguais
+            if (perguntas.length !== respostas.length) {
+                alert('O número de perguntas e respostas deve ser o mesmo.');
+                return;
+            }
+
+            // Cadastrando o aluno
+            const alunoResponse = await fetch('http://127.0.0.1:5000/alunos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nome: nomeAluno })
+            });
+            const alunoData = await alunoResponse.json();
+            const idAluno = alunoData.id;
+
+            // Cadastrando as perguntas e respostas
+            for (let i = 0; i < perguntas.length; i++) {
+                const pergunta = perguntas[i];
+                const resposta = respostas[i];
+
+                // Cadastrando pergunta
+                const perguntaResponse = await fetch('http://127.0.0.1:5000/perguntas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ texto: pergunta })
+                });
+                const perguntaData = await perguntaResponse.json();
+                const idPergunta = perguntaData.id;
+
+                // Cadastrando resposta
+                await fetch('http://127.0.0.1:5000/respostas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id_pergunta: idPergunta, id_aluno: idAluno, resposta: resposta })
+                });
+            }
+
+            // Chamada para corrigir as respostas
+            const corrigirResponse = await fetch('http://127.0.0.1:5000/corrigir', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nome_aluno: nomeAluno,
+                    perguntas: perguntas,
+                    respostas: respostas,
+                    id_aluno: idAluno  // Passando o ID do aluno para o endpoint
+                })
+            });
+
+            if (corrigirResponse.ok) {
+                const resultado = await corrigirResponse.json();
+                alert(`Cadastro realizado com sucesso! Nota: ${resultado.nota}%`);
+            } else {
+                alert('Erro ao corrigir as respostas.');
+            }
+
+            // Limpar os campos após o cadastro
+            document.getElementById('nomeAluno').value = '';
+            document.getElementById('perguntas').value = '';
+            document.getElementById('respostas').value = '';
+        }
+    </script>
+</head>
+<body>
+    <h1>Cadastrar Perguntas e Respostas</h1>
+    <h2>Esse front-end é apenas para mostrar o back-end em ação, o final esta sendo feito em Flutter</h2>
+    <label for="nomeAluno">Nome do Aluno:</label>
+    <input type="text" id="nomeAluno" required>
+    <br><br>
+
+    <label for="perguntas">Perguntas (uma por linha):</label>
+    <textarea id="perguntas" rows="5" cols="30" required></textarea>
+    <br><br>
+
+    <label for="respostas">Respostas (uma por linha):</label>
+    <textarea id="respostas" rows="5" cols="30" required></textarea>
+    <br><br>
+
+    <button onclick="cadastrar()">Cadastrar</button>
+</body>
+</html>
