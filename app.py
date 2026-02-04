@@ -7,7 +7,7 @@ import re
 app = Flask(__name__)
 CORS(app)
 
-API_KEY = 'AIzaSyDKfb0y3IhQMcx7Rmsw8ICh5MucvrtIg_s'
+API_KEY = "API_KEY"
 genai.configure(api_key=API_KEY)
 
 db = Database()
